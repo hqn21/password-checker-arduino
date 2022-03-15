@@ -32,22 +32,23 @@ char password[4]; // 四位密碼
 int delayTime = 1000; // 顯示提示字句後的延遲（毫秒）
 char temp[4]; // 暫存
 int nowTemp = 0; // 目前暫存位置
+int guessStatus = 1;
 
 void delayAndShowTemp() {
     delay(delayTime);
-    if(nowTemp > 1) {
+    lcd.clear();
+    if(nowTemp > 0) {
         for(int i = 0; i < nowTemp; i++) {
             lcd.print(temp[i]);
         }
-    }
-    else {
-        lcd.clear();
     }
 }
 
 void setup() {
     lcd.init(); // 初始化LCD
     lcd.backlight(); // 開啟背光
+    lcd.print("START");
+    delay(delayTime);
     lcd.clear(); // 清空螢幕
 }
 
@@ -61,25 +62,27 @@ void loop() {
         case 'A':
             lcd.clear();
             if(nowTemp != 4) {
-                lcd.print("ERROR_TEMP_NOT_ENOUGH_A");
+                lcd.print("ERR_TP_NOT_EH_A");
                 delayAndShowTemp();
                 break;
             }
             // 猜密碼
+            guessStatus = 1;
             if(passwordStatus) {
                 for(int i = 0; i < 4; i++) {
                     if(password[i] != temp[i]) {
-                        nowTemp = 0;
-                        memset(temp, 0, sizeof(temp));
-                        lcd.print("ERROR_GUESS_PASSWORD_A");
-                        delayAndShowTemp();
-                        break;
+                        guessStatus = 0;
                         break;
                     }
                 }
                 nowTemp = 0;
                 memset(temp, 0, sizeof(temp));
-                lcd.print("SUCCESS_GUESS_PASSWORD_A");
+                if(guessStatus == 0) {
+                  lcd.print("ERR_GU_PW_A");
+                }
+                else {
+                  lcd.print("SUC_GU_PW_A");
+                }
                 delayAndShowTemp();
             }
             // 設置密碼
@@ -87,9 +90,10 @@ void loop() {
                 for(int i = 0; i < 4; i++) {
                     password[i] = temp[i];
                 }
+                passwordStatus = 1;
                 nowTemp = 0;
                 memset(temp, 0, sizeof(temp));
-                lcd.print("SUCCESS_SET_PASSWORD_A");
+                lcd.print("SUC_SET_PW_A");
                 delayAndShowTemp();
             }
             break;
@@ -97,18 +101,18 @@ void loop() {
         case 'B':
             lcd.clear();
             if(!passwordStatus) {
-                lcd.print("ERROR_PASSWORD_NOT_SET_B");
+                lcd.print("ERR_PW_NOT_SET_B");
                 delayAndShowTemp();
                 break;
             }
-            lcd.print("SUCCESS_PASSWORD_SET_B");
+            lcd.print("SUC_PW_SET_B");
             delayAndShowTemp();
             break;
         // 顯示當前密碼
         case 'C':
             lcd.clear();
             if(!passwordStatus) {
-                lcd.print("ERROR_PASSWORD_NOT_SET_C");
+                lcd.print("ERR_PW_NOT_SET_C");
                 delayAndShowTemp();
                 break;
             }
@@ -117,8 +121,18 @@ void loop() {
             }
             delayAndShowTemp();
             break;
-        // 還沒想好要幹嘛
+        // 清空密碼
         case 'D':
+            lcd.clear();
+            if(!passwordStatus) {
+              lcd.print("ERR_PW_NOT_SET_D");
+              delayAndShowTemp();
+              break;
+            }
+            passwordStatus = 0;
+            memset(password, 0, sizeof(password));
+            lcd.print("SUC_CLEAR_PW_D");
+            delayAndShowTemp();
             break;
         // 按其他按鈕
         default:
@@ -133,8 +147,14 @@ void loop() {
                 temp[2] = temp[3];
                 temp[3] = key;
             }
-            delayAndShowTemp();
+            if(nowTemp > 0) {
+                for(int i = 0; i < nowTemp; i++) {
+                    lcd.print(temp[i]);
+                }
+            }
+            else {
+                lcd.clear();
+            }
             break;
-        }
     }
 }
