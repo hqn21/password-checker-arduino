@@ -29,13 +29,18 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); //設定LCD位置0x27,設定LCD大小為16*2
 */
 int passwordStatus = 0; // 設置密碼狀態 {0 => "尚未設置", 1 => "已設置"}
 char password[4]; // 四位密碼
-int delayTime = 1000; // 顯示提示字句後的延遲（毫秒）
+int delayTime = 2000; // 顯示提示字句後的延遲（毫秒）
 char temp[4]; // 暫存
 int nowTemp = 0; // 目前暫存位置
 int guessStatus = 1;
 
+int red = 2;
+int blue = 3;
+
 void delayAndShowTemp() {
     delay(delayTime);
+    digitalWrite(red, LOW);
+    digitalWrite(blue, LOW);
     lcd.clear();
     if(nowTemp > 0) {
         for(int i = 0; i < nowTemp; i++) {
@@ -48,8 +53,14 @@ void setup() {
     lcd.init(); // 初始化LCD
     lcd.backlight(); // 開啟背光
     lcd.print("START");
+    pinMode(red, OUTPUT);
+    pinMode(blue, OUTPUT);
+    digitalWrite(red, HIGH);
+    digitalWrite(blue, HIGH);
     delay(delayTime);
     lcd.clear(); // 清空螢幕
+    digitalWrite(red, LOW);
+    digitalWrite(blue, LOW);
 }
 
 void loop() {
@@ -63,6 +74,7 @@ void loop() {
             lcd.clear();
             if(nowTemp != 4) {
                 lcd.print("ERR_TP_NOT_EH_A");
+                digitalWrite(red, HIGH);
                 delayAndShowTemp();
                 break;
             }
@@ -79,9 +91,11 @@ void loop() {
                 memset(temp, 0, sizeof(temp));
                 if(guessStatus == 0) {
                   lcd.print("ERR_GU_PW_A");
+                  digitalWrite(red, HIGH);
                 }
                 else {
                   lcd.print("SUC_GU_PW_A");
+                  digitalWrite(blue, HIGH);
                 }
                 delayAndShowTemp();
             }
@@ -94,6 +108,7 @@ void loop() {
                 nowTemp = 0;
                 memset(temp, 0, sizeof(temp));
                 lcd.print("SUC_SET_PW_A");
+                digitalWrite(blue, HIGH);
                 delayAndShowTemp();
             }
             break;
@@ -102,10 +117,12 @@ void loop() {
             lcd.clear();
             if(!passwordStatus) {
                 lcd.print("ERR_PW_NOT_SET_B");
+                digitalWrite(red, HIGH);
                 delayAndShowTemp();
                 break;
             }
             lcd.print("SUC_PW_SET_B");
+            digitalWrite(blue, HIGH);
             delayAndShowTemp();
             break;
         // 顯示當前密碼
@@ -113,12 +130,14 @@ void loop() {
             lcd.clear();
             if(!passwordStatus) {
                 lcd.print("ERR_PW_NOT_SET_C");
+                digitalWrite(red, HIGH);
                 delayAndShowTemp();
                 break;
             }
             for(int i = 0; i < 4; i++) {
                 lcd.print(password[i]);
             }
+            digitalWrite(blue, HIGH);
             delayAndShowTemp();
             break;
         // 清空密碼
@@ -126,12 +145,14 @@ void loop() {
             lcd.clear();
             if(!passwordStatus) {
               lcd.print("ERR_PW_NOT_SET_D");
+              digitalWrite(red, HIGH);
               delayAndShowTemp();
               break;
             }
             passwordStatus = 0;
             memset(password, 0, sizeof(password));
             lcd.print("SUC_CLEAR_PW_D");
+            digitalWrite(blue, HIGH);
             delayAndShowTemp();
             break;
         // 按其他按鈕
